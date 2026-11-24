@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PortalIntegrador 502</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #f1f5f9; color: #1e293b; margin: 0; padding: 15px; }
+        .wrap { max-width: 760px; margin: auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 3px 10px rgba(0,0,0,0.08); }
+        .login { max-width: 350px; margin: 50px auto; text-align: center; }
+        input, select { width: 100%; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; margin-bottom: 10px; }
+        button { padding: 8px 14px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; background: #1e3a8a; color: #fff; }
+        nav { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px; flex-wrap: wrap; gap: 8px; }
+        .nav-btns { display: flex; gap: 6px; }
+        .vista { display: none; }
+        .vista.activa { display: block; }
+        .row-form { display: grid; grid-template-columns: 2fr 1fr auto; gap: 8px; }
+        @media (max-width: 550px) { .row-form { grid-template-columns: 1fr; } }
+        table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; }
+        th, td { border: 1px solid #e2e8f0; padding: 8px; text-align: left; }
+        th { background: #1e3a8a; color: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="wrap login" id="pantallaLogin">
+    <h2 style="color:#1e3a8a; margin-top:0;">🔐 PortalIntegrador 502</h2>
+    <p style="font-size:12px; color:#64748b;">Clave de acceso: <strong>cecytec2026</strong></p>
+    <input type="password" id="txtPass" placeholder="Contraseña">
+    <button style="width:100%;" onclick="entrarPortal()">Ingresar</button>
+</div>
+
+<div class="wrap" id="pantallaPortal" style="display:none;">
+    <nav>
+        <strong style="color:#1e3a8a; font-size:17px;">🌐 PortalIntegrador 502</strong>
+        <div class="nav-btns">
+            <button onclick="irVista('inicio')">Inicio</button>
+            <button onclick="irVista('crud')">Registros CRUD</button>
+            <button style="background:#dc2626;" onclick="salirPortal()">Salir</button>
+        </div>
+    </nav>
+
+    <!-- VISTA 1: INICIO / RESUMEN -->
+    <div id="vista-inicio" class="vista activa">
+        <h3>Panel de Estado del Módulo</h3>
+        <p>Bienvenido al integrador final del Grupo 502. Utiliza la barra superior para cambiar entre vistas sin recargar la página.</p>
+        <p><strong>Total de registros guardados:</strong> <span id="totalReg">0</span></p>
+    </div>
+
+    <!-- VISTA 2: CRUD -->
+    <div id="vista-crud" class="vista">
+        <h3>Gestión de Registros</h3>
+        <div class="row-form">
+            <input type="text" id="regNombre" placeholder="Nombre del módulo o recurso">
+            <select id="regEstado">
+                <option value="Activo">Activo</option>
+                <option value="En revisión">En revisión</option>
+            </select>
+            <button onclick="guardarReg()">+ Guardar</button>
+        </div>
+        <table>
+            <thead><tr><th>Elemento</th><th>Estado</th><th>Acción</th></tr></thead>
+            <tbody id="cuerpoTabla"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function entrarPortal() {
+        if (document.getElementById("txtPass").value === "cecytec2026") {
+            document.getElementById("pantallaLogin").style.display = "none";
+            document.getElementById("pantallaPortal").style.display = "block";
+            actualizarTabla();
+        } else {
+            alert("❌ Clave incorrecta.");
+        }
+    }
+
+    function salirPortal() {
+        document.getElementById("txtPass").value = "";
+        document.getElementById("pantallaPortal").style.display = "none";
+        document.getElementById("pantallaLogin").style.display = "block";
+    }
+
+    function irVista(vista) {
+        document.querySelectorAll(".vista").forEach(v => v.classList.remove("activa"));
+        document.getElementById("vista-" + vista).classList.add("activa");
+        actualizarTabla();
+    }
+
+    function getRegs() { return JSON.parse(localStorage.getItem("portal_502")) || []; }
+    function setRegs(d) { localStorage.setItem("portal_502", JSON.stringify(d)); }
+
+    function guardarReg() {
+        const nombre = document.getElementById("regNombre").value.trim();
+        const estado = document.getElementById("regEstado").value;
+        if (!nombre) { alert("Escribe un nombre."); return; }
+        const lista = getRegs();
+        lista.push({ id: Date.now(), nombre, estado });
+        setRegs(lista);
+        document.getElementById("regNombre").value = "";
+        actualizarTabla();
+    }
+
+    function borrarReg(id) {
+        setRegs(getRegs().filter(r => r.id !== id));
+        actualizarTabla();
+    }
+
+    function actualizarTabla() {
+        const lista = getRegs();
+        document.getElementById("totalReg").innerText = lista.length;
+        const tbody = document.getElementById("cuerpoTabla");
+        tbody.innerHTML = "";
+        lista.forEach(r => {
+            tbody.innerHTML += `<tr><td>${r.nombre}</td><td>${r.estado}</td><td><button style="background:#dc2626; padding:4px 8px;" onclick="borrarReg(${r.id})">X</button></td></tr>`;
+        });
+    }
+</script>
+</body>
+</html>
